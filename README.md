@@ -1,6 +1,8 @@
 # pacman-emulator
 A Pac Man machine emulator written in Java
 
+![alt tag](https://github.com/frisnit/pacman-emulator/blob/master/screenshot.png)
+
 This emulator was written with the help of Chris Lomont's Pac Man emulation guide:
 
 http://www.lomont.org/Software/Games/PacMan/PacmanEmulation.pdf
