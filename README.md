@@ -7,7 +7,7 @@ http://www.lomont.org/Software/Games/PacMan/PacmanEmulation.pdf
 
 Take a look at that for full details of the implementation.
 
-There are six basic parts:
+There are six main parts to the emulator:
 
 ## CPU
 This is based on the Java Z80 microprocessor emulator that can be found here: https://code.google.com/p/z80-cpu/ with additions to support the mode 2 external interrupt (INT) required by the machine's sound and display hardware. Pressing 'r' while the emulator is running will force a CPU reset.
@@ -43,5 +43,5 @@ You'll need to get a set of Pac Man ROMs from somewhere else to make this work. 
     pacman.6h  SHA1 8e47e8c2c4d6117d174cdac150392042d3e0a881  
     pacman.6j  SHA1 d4a70d56bb01d27d094d73db8667ffb00ca69cb9 
 
-
+The emulator doesn't check the hashes, it'll try and run anything you give it (including no ROMs at all). These are just given here as a first line in sanity checking your setup.
 
