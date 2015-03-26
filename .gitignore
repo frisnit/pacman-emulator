@@ -16,7 +16,7 @@ Thumbs.db
 *.dmg
 *.gz
 *.iso
-*.jar
+#*.jar
 *.rar
 *.tar
 *.zip
@@ -34,4 +34,4 @@ composer.lock
 build.xml
 manifest.mf
 
-/dist/
+#/dist/
