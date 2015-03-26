@@ -27,7 +27,21 @@ This emulates the video hardware and produces a representation of the screen bas
 The Pac Man sound hardware supports 3 voices on a single mono channel. Each of these voices can select the volume and frequency of one of 8 output waveforms. The sound registers are written to by the CPU over the memory mapped IO space during the 60Hz VBLANK interrupt. The Pac Man sound hardware runs at a 96kHz sample rate so the output from the sound emulator is downsampled to 44.1kHz for output. It currently doesn't low pass filter the 96kHz stream though so there could be aliasing in the output. See Sound.java for implementation.
 
 ## Inputs
-This emulation currently supports the Player 1 controls (cursor keys), start button (1) and coin input (5). The DIP switches are hardcoded. See Io.java for implementation.
+This emulation currently supports the following keyboard controls:
+
+### Machine controls
+- Player 1 controls (cursor keys)
+- Player 2 controls (cursor keys)
+- 1 player start button (1)
+- 2 player start button (2)
+- Coin input (5).
+
+The DIP switches are hardcoded. See Io.java for implementation.
+
+### Emulator controls
+- 'r' to reset the Z80 emulation
+- 'c' to apply an invincibility cheat patch to the ROM image (do this after the machine boots else it'll fail the ROM test)
+- 'p' to pause the emulation
 
 ---
 
