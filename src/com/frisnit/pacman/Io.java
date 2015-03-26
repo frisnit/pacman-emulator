@@ -55,8 +55,9 @@ public class Io {
 
     private boolean KEY_COIN;
     private boolean KEY_P1_START;
+    private boolean KEY_P2_START;
     
-    Status status;
+    private final Status status;
     
     // out
     private static final int WATCHDOG = 0x50c0;
@@ -64,12 +65,16 @@ public class Io {
     private static final int SOUND_ENABLE = 0x5001;
     private static final int FLIP_SCREEN = 0x5003;
 
-    // sound data
+    // sound registers
+    // implemented in the hardware as two 4-bit x 16 RAMs (74LS89)
+    // arranged as 32 contiguous 4-bit words
     private static final int SOUND_START = 0x5040;
     private static final int SOUND_LENGTH = 0x20;
     final private int[] soundData; 
 
-    // sprite data
+    // sprite registers
+    // implemented in the hardware as two 4-bit x 16 RAM chips (74LS89)
+    // arranged as 16 contiguous 8-bit words
     private static final int SPRITE_START = 0x5060;
     private static final int SPRITE_LENGTH = 0x10;
     final private int[] spriteData; 
@@ -122,12 +127,29 @@ IN1:
                 value|=KEY_LEFT?0x00:0x02;
                 value|=KEY_RIGHT?0x00:0x04;
                 value|=KEY_DOWN?0x00:0x08;
-                value|=KEY_COIN?0x00:0x80;
+                value|=KEY_COIN?0x00:0x20;
+                                
                 return value;
             
             case INPUTS_1:
-                value=0xdf;
+                value=0x00;
+
+                // P2 can use the same keys as P1
+                value|=KEY_UP?0x00:0x01;
+                value|=KEY_LEFT?0x00:0x02;
+                value|=KEY_RIGHT?0x00:0x04;
+                value|=KEY_DOWN?0x00:0x08;
+
+                
+                // service mode off
+                value|=0x10;
+                
                 value|=KEY_P1_START?0x00:0x20;
+                value|=KEY_P2_START?0x00:0x40;
+  
+                // upright mode
+                //value |= 0x80;
+                
                 return value;
             
             case DIP_1:
@@ -155,18 +177,18 @@ IN1:
             // enable/disable VBLANK 60Hz interrupt
             case INT_ENABLE:
                // System.out.println(String.format("INT_ENABLE 0x%02x",data));
-                status.setInterruptEnabled((data&0x01)==1);
+                getStatus().setInterruptEnabled((data&0x01)==1);
                 break;
                 
             case SOUND_ENABLE:
-           //     System.out.println(String.format("SOUND_ENABLE 0x%02x",data));
-                status.setSoundEnabled((data&0x01)==1);
+                getStatus().setSoundEnabled((data&0x01)==1);
+                System.out.println(getStatus().isSoundEnabled()?"Sound enabled":"Sound disabled");
                 break;
                 
             case FLIP_SCREEN:
                 // video hardware should use this to flip the tiles for cocktail table mode
              //   System.out.println(String.format("FLIP_SCREEN 0x%02x",data));
-                status.setScreenFlipped((data&0x01)==1);
+                getStatus().setScreenFlipped((data&0x01)==1);
                 break;
                 
             default:
@@ -220,6 +242,9 @@ IN1:
             case 0x31:// p1start (1)
                 KEY_P1_START=true;
                 break;
+            case 0x32:// p2start (2)
+                KEY_P2_START=true;
+                break;
         }
     }
     
@@ -245,6 +270,16 @@ IN1:
             case 0x31:// p1start (1)
                 KEY_P1_START=false;
                 break;
+           case 0x32:// p2start (2)
+                KEY_P2_START=false;
+                break;
         }  
+    }
+
+    /**
+     * @return the status
+     */
+    public Status getStatus() {
+        return status;
     }
 }

@@ -34,3 +34,4 @@ composer.lock
 build.xml
 manifest.mf
 
+/dist/

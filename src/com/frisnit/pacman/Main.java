@@ -37,7 +37,10 @@ public class Main implements KeyListener
     }
     
     Io io;
+    Z80Memory memory;
     Z80Core z80;
+    
+    boolean paused = false;
     
     // Create CPU and loop through program
     public void run()
@@ -47,9 +50,13 @@ public class Main implements KeyListener
         
         // create RAM
         Ram ram =  new Ram();
-
+                
         // create memory mapped IO space
         io = new Io(status);
+
+        // create address bus
+        memory = new Z80Memory(status, ram, io);
+
         
         // create video emulator
         Video video = new Video(ram,io);
@@ -73,7 +80,7 @@ public class Main implements KeyListener
         //
         
         // create a Z80, add memory and IO handlers
-        z80 = new Z80Core(new Z80Memory(status, ram, io), new Z80IO(status));
+        z80 = new Z80Core(memory, new Z80IO(status));
         z80.reset();
         
         while(!false)
@@ -88,12 +95,16 @@ public class Main implements KeyListener
                 {
                     z80.resetTStates();
                 
-                    try {
-                        Thread.sleep(12);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    do
+                    {
+                        try {
+                            Thread.sleep(12);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
-                   
+                    while(paused);
+                    
                     if(status.isInterruptEnabled())
                     {
                         // fire INT (60Hz VBLANK interrupt)
@@ -127,12 +138,32 @@ public class Main implements KeyListener
     public void keyPressed(KeyEvent e)
     {
         io.keyPressed(e.getKeyCode());
-//        System.out.println(String.format("Key pressed 0x%04x",e.getKeyCode()));
-        // press 'r' to reset
+        
+        
+       // System.out.println(String.format("Key pressed 0x%04x",e.getKeyCode()));
+
+        // press 'r' to reset the CPU
+        // leaves the RAM, ROM etc untouched        
         if(e.getKeyCode()==0x52)
         {
+            System.out.println("Reset pressed");
             z80.reset();
         }
+
+        // press 'p' to pause
+        if(e.getKeyCode()==0x50)
+        {
+            paused=!paused;
+            System.out.println(paused?"Paused":"Unpaused");
+        }
+
+        // press 'c' to apply cheat patch
+        if(e.getKeyCode()==0x43)
+        {
+            System.out.println("Cheat patch applied");
+            memory.cheatPatch();
+        }
+        
     }
 
     @Override

@@ -18,6 +18,8 @@ package com.frisnit.pacman;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import javax.swing.JPanel;
@@ -29,9 +31,16 @@ import javax.swing.JPanel;
 
 /*
 
-8x8 pixel tiles
+224 x 288 pixels
 28 x 36 tiles
-224x288 pixels
+
+256 8x8 pixel tiles
+64 16x16 pixel sprites
+
+6MHz pixel clock (scans vertically - screen is rotated through 90 degrees)
+
+32 colours, only 16 used
+64 palettes, 4 bytes (colours) each
 
 */
 
@@ -57,7 +66,7 @@ public class Video {
     
     private int[][] tiles;
     
-    
+  
 
     public Video(Ram ram, Io io)
     {
@@ -86,7 +95,7 @@ public class Video {
         
         bitmap = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
         canvas = new DrawCanvas();
-
+       
         tiles = new int[256][];
         // unpack the 256 tiles
         for(int i=0;i<256;i++)
@@ -96,9 +105,24 @@ public class Video {
             // 16 bytes per char
             for(int n=0;n<16;n++)
             {
+                int address = i*16+n;
+                                
+               // address^=0x03ff;
+                
+                // simulate two address pins shorted
+               // address|=((address&0x08)>>1);
+               // address|=((address&0x04)<<1);
+                
                 // get next byte of character
-                int characterByte = tileRom.readByte(i*16+n);
+                int characterByte = tileRom.readByte(address);
 
+                // simulate a data line floating
+                //if(Math.random()>0.5)
+               //     characterByte&=0xfe;
+               // else
+                //    characterByte|=0x01;
+
+                
                 // 4 pixels per byte 
                 characterData[n*4+0]=((characterByte>>0)&0x01)|((characterByte>>3)&0x02);
                 characterData[n*4+1]=((characterByte>>1)&0x01)|((characterByte>>4)&0x02);
@@ -194,7 +218,8 @@ public class Video {
       public void paintComponent(Graphics g) {
          super.paintComponent(g);     // paint parent's background
          setBackground(Color.BLACK);  // set background color for this JPanel
-         renderFrame();         
+         renderFrame();
+         
          g.drawImage(bitmap,16,16,Video.WIDTH*2, Video.HEIGHT*2,null);
        }
    }
@@ -202,17 +227,27 @@ public class Video {
     // draw the tiles in this frame, untangling the strange tile layout
     public void renderFrame()
     {
-
-         Graphics2D g2 = bitmap.createGraphics();
+        Graphics2D g2 = bitmap.createGraphics();
      
         g2.setColor(Color.BLACK);
         g2.fillRect(0,0, WIDTH, HEIGHT);
         
+        // draw the tiles
         renderTiles();
-
-         // draw sprites on top of tiles
-        renderSprites();
         
+        // flip tile screen if necessary for player 2 in cocktail mode
+        // (this is a massive shortcut in the emulation!)
+        if(io.getStatus().isScreenFlipped())
+        {
+            // rotate image through 180 degrees (flip both x and y)
+            AffineTransform tx = AffineTransform.getScaleInstance(-1, -1);
+            tx.translate(-bitmap.getWidth(null), -bitmap.getHeight(null));
+            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            bitmap = op.filter(bitmap, null);
+        }
+
+        // draw sprites on top of the tiles
+        renderSprites();
     }
     
     // return an 8x8 image of the tile 'value' with colour at colour RAM location 'offset' 
@@ -337,7 +372,9 @@ public class Video {
         PaletteEntry palette = new PaletteEntry();
 
         paletteIndex<<=2;// offset into palette ROM (4 bytes per palette)
-        paletteIndex&=0x7f;
+
+        // palette ROM has  address lines (lowest two lines are the pixel colour value)
+        paletteIndex&=0xff;
         
         int colourIndex = paletteRom.readByte(paletteIndex);
         palette.setColour(colourRom.readByte(colourIndex),0);
@@ -450,7 +487,12 @@ public class Video {
         for(int n=0;n<64;n++)
         {
             // get next byte of character
-            int characterByte = spriteRom.readByte(spriteIndex*64+n);
+            int address = spriteIndex*64+n;
+           
+            // simulate an address line stuck high
+            //address|=0x0001;
+
+            int characterByte = spriteRom.readByte(address);
             
             // 4 pixels per byte 
             characterData[n*4+0]=((characterByte>>0)&0x01)|((characterByte>>3)&0x02);

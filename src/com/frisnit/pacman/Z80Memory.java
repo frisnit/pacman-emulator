@@ -53,7 +53,7 @@ public class Z80Memory implements IMemory
         romList.put("pacman.6f", 0x1000);
         romList.put("pacman.6h", 0x2000);
         romList.put("pacman.6j", 0x3000);
-        rom = new Rom(0x4000,0x1000, romList, "pacman.zip");        
+        rom = new Rom(0x4000,0x1000, romList, "pacman.zip");
     }
 
     private final static int ROM_START    = 0x0000;
@@ -73,7 +73,7 @@ public class Z80Memory implements IMemory
 
     // return memory offset from bus address
     private int addressOffset(int address, int type)
-    {
+    {        
         switch(type)
         {
             case TYPE_ROM:
@@ -117,8 +117,7 @@ public class Z80Memory implements IMemory
     // Read a byte from meory
     public int readByte(int address)
     {
-        
-        // no A15 line connected
+        // only lines A0 to A14 are connected
         address &=0x7fff;
         
        // System.out.println(String.format("Read at 0x%x",address));
@@ -129,8 +128,10 @@ public class Z80Memory implements IMemory
         switch(type)
         {
             case TYPE_ROM:
+                // note only lines A0 to A14 connected to ROMs
                 return rom.readByte(offset);
             case TYPE_RAM:
+                // note only lines A0 to A11 connected to RAMs
                 return ram.readByte(offset);
             case TYPE_IO:
                // System.out.println(String.format("IO read from 0x%x",address));
@@ -186,4 +187,31 @@ public class Z80Memory implements IMemory
         writeByte(address,low);
         writeByte(address+1,high);
     }
+
+    public void cheatPatch()
+    {
+        // patch ROM for invincibility
+        
+        rom.writeByte(0x1774,0xc3);
+        rom.writeByte(0x1775,0xe0);
+        rom.writeByte(0x1776,0x3c);
+        rom.writeByte(0x1777,0x00);
+
+        rom.writeByte(0x3ce0,0xa7);
+        rom.writeByte(0x3ce1,0x20);
+        rom.writeByte(0x3ce2,0x04);
+        rom.writeByte(0x3ce3,0x00);
+
+        rom.writeByte(0x3ce3,0xaf);
+        rom.writeByte(0x3ce4,0xc3);
+        rom.writeByte(0x3ce5,0x64);
+        rom.writeByte(0x3ce6,0x17);
+
+        rom.writeByte(0x3ce7,0xaf);
+        rom.writeByte(0x3ce8,0xc3);
+        rom.writeByte(0x3ce9,0x77);
+        rom.writeByte(0x3cea,0x17);
+  
+    }
+
 }

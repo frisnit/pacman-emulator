@@ -117,4 +117,17 @@ public class Rom {
 
         return rom[address] & 0xff;
     }    
+
+    // for patching ROMs
+    public void writeByte(int address, int data)
+    {
+        data &= 0xff;
+        
+        if(address>=romSize)
+        {
+            System.out.println("ROM write out of bounds");
+        }
+        
+        rom[address] = data;
+    }
 }

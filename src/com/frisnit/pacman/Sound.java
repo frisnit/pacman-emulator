@@ -175,9 +175,13 @@ public class Sound {
             
             // update accumulator
             accumulator[voice]+=frequency[voice];
-            //accumulator[voice]&=0xFFFFF;
 
-            return sample * volume[voice];//==0?0x00:0x04;
+            // looking at the schematic, the 4-bit volume parameter is applied to the enable lines of 4 analogue switches
+            // (the input of each switch is from a weighted resistor network) so it's an & rather than a multiply
+            int output = sample & volume[voice];
+            
+            // maximise volume of 8-bit samples for output
+            return output<<3;
         }
         
         private int getWaveformIndex(int address)
@@ -214,7 +218,7 @@ public class Sound {
         
         private int getVolume(int address)
         {
-            return (io.readSoundData(address)&0x0f)>>1;
+            return (io.readSoundData(address)&0x0f);//>>1;
         }
 
         /*

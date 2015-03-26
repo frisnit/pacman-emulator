@@ -46,11 +46,12 @@ public class Z80IO implements IBaseDevice
     @Override
     public void IOWrite(int address, int data)
     {        
-        if(address==0)
+        System.out.println(String.format("IOWrite called at 0x%04x (0x%02x)",address,data));
+
+        if(address==0x0000)
         {
             status.setIrqVector(data);
-        System.out.println(String.format("IRQ set - IOWrite called at 0x%04x (0x%02x)",address,data));
+            System.out.println(String.format("IRQ set (0x%02x)",data));
         }
-        //System.out.print((char) data);
     }
 }
