@@ -68,7 +68,7 @@ public class Video {
     
   
 
-    public Video(Ram ram, Io io)
+    public Video(Ram ram, Io io, String rompack)
     {
         this.io=io;
         this.ram=ram;
@@ -76,22 +76,22 @@ public class Video {
         // load tile ROM
         HashMap<String, Integer> romList = new HashMap<String, Integer>();
         romList.put("pacman.5e", 0x0000);
-        tileRom = new Rom(0x1000,0x1000, romList, "pacman.zip");
+        tileRom = new Rom(0x1000,0x1000, romList, rompack);
         
         // load sprite ROM
         romList = new HashMap<String, Integer>();
         romList.put("pacman.5f", 0x0000);
-        spriteRom = new Rom(0x1000,0x1000, romList, "pacman.zip");        
+        spriteRom = new Rom(0x1000,0x1000, romList, rompack);        
         
         // load colour ROM
         romList = new HashMap<String, Integer>();
         romList.put("82s123.7f", 0x0000);
-        colourRom = new Rom(0x20,0x20, romList, "pacman.zip");        
+        colourRom = new Rom(0x20,0x20, romList, rompack);        
 
         // load palette ROM
         romList = new HashMap<String, Integer>();
         romList.put("82s126.4a", 0x0000);
-        paletteRom = new Rom(0x100,0x100, romList, "pacman.zip");        
+        paletteRom = new Rom(0x100,0x100, romList, rompack);        
         
         bitmap = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
         canvas = new DrawCanvas();
@@ -115,13 +115,13 @@ public class Video {
                 
                 // get next byte of character
                 int characterByte = tileRom.readByte(address);
-
+/*
                 // simulate a data line floating
-                //if(Math.random()>0.5)
-               //     characterByte&=0xfe;
-               // else
-                //    characterByte|=0x01;
-
+                if(Math.random()>0.5)
+                    characterByte&=0xfe;
+                else
+                    characterByte|=0x01;
+*/
                 
                 // 4 pixels per byte 
                 characterData[n*4+0]=((characterByte>>0)&0x01)|((characterByte>>3)&0x02);
@@ -425,15 +425,12 @@ public class Video {
             
             // get sprite index + rotation
             int spriteIndexAndRotation = ram.readByte(0x0FF0+n*2);
-            
-            // get palette colours
-           // PaletteEntry palette = getTilePalette(spriteColour);
-
-            
+                        
             BufferedImage spriteImage = getSprite( spriteIndexAndRotation, spriteColour);
             
 //System.out.println(String.format("Sprite %d colour %d : %s", n, spriteColour, palette.getColour(1).toString()));
 
+            // draw a grey box around the sprites
             //Graphics2D spriteGraphics = spriteImage.createGraphics();
             //spriteGraphics.setColor(Color.GRAY);
             //spriteGraphics.drawRect(0,0,15,15);

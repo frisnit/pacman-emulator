@@ -168,6 +168,8 @@ IN1:
     {
         data&=0xff;
         
+        
+        
         switch(address)
         {
             case WATCHDOG:
@@ -197,7 +199,10 @@ IN1:
         
         // record sprite data
         if(address>=SPRITE_START && address<SPRITE_START+SPRITE_LENGTH)
-        {
+        {            
+            //System.out.println(String.format("IO write: 0x%04x 0x%02x",address,data&0xff));
+//data=0;
+            
             spriteData[address-SPRITE_START]=data&0xff;
         }
 

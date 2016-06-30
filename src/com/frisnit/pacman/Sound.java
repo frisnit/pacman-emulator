@@ -15,6 +15,7 @@
  */
 package com.frisnit.pacman;
 
+import dsp.FirFilter;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,9 +66,14 @@ public class Sound {
     VoiceParameters voiceParameters;
     
     SourceDataLine line;
-    //int sampleSize;
+
+    FirFilter firFilter;
     
-    public Sound(Io io, Status status)
+    private static final int FRAMES_PER_SECOND = 60;
+    private static final int SOURCE_SAMPLE_RATE = 96000;
+    private static final int OUTPUT_SAMPLE_RATE = 22050;
+    
+    public Sound(Io io, Status status, String rompack)
     {           
         this.io=io;
         this.status=status;
@@ -76,8 +82,12 @@ public class Sound {
         HashMap<String, Integer> romList = new HashMap<String, Integer>();
         romList.put("82s126.1m", 0x0000);
         romList.put("82s126.3m", 0x0100);
-        rom = new Rom(0x200,0x100, romList, "pacman.zip");
+        rom = new Rom(0x200,0x100, romList, rompack);
 
+        // create low pass filter for downsampler
+        firFilter = new FirFilter();
+        firFilter.setFilter(128,0,(double)OUTPUT_SAMPLE_RATE/(double)SOURCE_SAMPLE_RATE);
+        
         voiceParameters = new VoiceParameters();
         
         openSound();
@@ -113,7 +123,7 @@ public class Sound {
             for(int i=0;i<WAVEFORMS;i++)
             {
                 samples[i]=getSample(i);
-            }
+            }            
         }            
         
         public void UpdateVoiceParameters()
@@ -153,7 +163,7 @@ public class Sound {
                    // if(frequency[2]>0)
                      //   System.out.println(String.format("Voice 3 volume 0x%05x",volume[2]));
                     
-                    //System.out.println(String.format("VOICE3 waveform %d, volume %d, frequency 0x%08x", waveform[2],volume[2],frequency[2]));
+                  //  System.out.println(String.format("volumes: %d, %d, %d", volume[0],volume[1],volume[2]));
                     
                     
                     break;
@@ -180,8 +190,8 @@ public class Sound {
             // (the input of each switch is from a weighted resistor network) so it's an & rather than a multiply
             int output = sample & volume[voice];
             
-            // maximise volume of 8-bit samples for output
-            return output<<3;
+            // maximise volume of 4-bit samples for output
+            return output<<=3;
         }
         
         private int getWaveformIndex(int address)
@@ -231,9 +241,6 @@ public class Sound {
         {
             int[] sample = new int[SAMPLES_PER_WAVEFORMS];
             int offset = sampleNumber*SAMPLES_PER_WAVEFORMS;
-
-            
-          //  System.out.println(String.format("Reading sample %d from 0x%04x",sampleNumber,offset));
                         
             for(int i=0;i<WAVEFORMS;i++)
             {
@@ -255,7 +262,29 @@ public class Sound {
 
             return frame;
         }
+
+        /*
+        public byte[] generateSoundFrame(int frameSize)
+        {
+            voiceParameters.UpdateVoiceParameters();
+
+            byte[] voice1 = voiceParameters.generateVoiceWaveform(VoiceParameters.VOICE1,frameSize/3);
+            byte[] voice2 = voiceParameters.generateVoiceWaveform(VoiceParameters.VOICE2,frameSize/3);
+            byte[] voice3 = voiceParameters.generateVoiceWaveform(VoiceParameters.VOICE3,frameSize/3);
+
+            byte[] output = new byte[frameSize];
+
+            for(int i=0;i<frameSize/3;i++)
+            {
+                output[i*3+0]=voice1[i];
+                output[i*3+1]=voice2[i];
+                output[i*3+2]=voice3[i];
+            }
+            return output;
+        }      
+        */
         
+                
         public byte[] generateSoundFrame(int frameSize)
         {
             voiceParameters.UpdateVoiceParameters();
@@ -272,10 +301,8 @@ public class Sound {
                 int mix = voice1[i]+voice2[i]+voice3[i];
                 output[i]=(byte)(mix/2);
             }
-
             return output;
-
-        }
+        }      
         
     }
     
@@ -284,7 +311,7 @@ public class Sound {
     
     private void openSound()
     {
-        AudioFormat pcm = new AudioFormat(44100, 8, 1, false, false);
+        AudioFormat pcm = new AudioFormat(OUTPUT_SAMPLE_RATE, 8, 1, true, false);
         DataLine.Info info=new DataLine.Info(SourceDataLine.class,pcm);
 
         try
@@ -310,54 +337,31 @@ public class Sound {
         }
     }
     
-    // generate and play next frame of sound data
+    // generate and play next frame (1/60th of a second) of sound data
     public void playSound()
     {
         if(!status.isSoundEnabled())
             return;
+
+        int srcFrameSize = SOURCE_SAMPLE_RATE/FRAMES_PER_SECOND;// pacman sound runs at 96kHz
+        int dstFrameSize = OUTPUT_SAMPLE_RATE/FRAMES_PER_SECOND;// emulator sound runs at 44.1kHz
+
+        byte[] buffer = voiceParameters.generateSoundFrame(srcFrameSize);
+
+        byte[] output = new byte[dstFrameSize];
+
+        // apply antialiasing filter
+        buffer = firFilter.filter(buffer);
         
-        //line.drain( );
-                
-                //byte[  ] buffer = new byte[1 * 1024 * framesize]; // the buffer
-
-                int srcFrameSize = 96000/60;// pacman sound runs at 96kHz
-                int dstFrameSize = 44100/60;// emulator sound runs at 44.1kHz
+        // resample 96kHz buffer
+        float inc = (float)srcFrameSize/(float)dstFrameSize;
+        for(int i=0;i<dstFrameSize;i++)
+        {
+            int offset = (int)(inc*(float)i);
+            output[i]=buffer[offset];
+        }
         
-                byte[] buffer = voiceParameters.generateSoundFrame(srcFrameSize);
-                
-                // downsample 96kHz frame to 44.1kHz
-                byte[] output = new byte[dstFrameSize];
-                
-                float inc = (float)srcFrameSize/(float)dstFrameSize;
-                
-                // TODO: low pass filter before resample
-                for(int i=0;i<dstFrameSize;i++)
-                {
-                    int offset = (int)(inc*(float)i);
-                    output[i]=buffer[offset];
-                }
-                
-                /*
-                // create a square wave
-                for(int i=0;i<output.length;i++)
-                {
-                    if((i&0x10)!=0)
-                    {
-                        output[i]=100;
-                    }
-                    else
-                    {
-                        output[i]=-100;
-                    }
-                }
-*/
-                
-                line.write(output, 0, output.length);
-
-                // Now block until all buffered sound finishes playing.
-                //line.drain( );
-
-               // line.close( );  
- 
+        // write data to sound output
+        line.write(output, 0, output.length);
     }
 }
