@@ -348,13 +348,12 @@ public class Sound {
 
         byte[] buffer = voiceParameters.generateSoundFrame(srcFrameSize);
 
-        // downsample 96kHz frame to 44.1kHz
         byte[] output = new byte[dstFrameSize];
 
         // apply antialiasing filter
         buffer = firFilter.filter(buffer);
         
-        // resample 96kHz buffer at 44.1kHz
+        // resample 96kHz buffer
         float inc = (float)srcFrameSize/(float)dstFrameSize;
         for(int i=0;i<dstFrameSize;i++)
         {

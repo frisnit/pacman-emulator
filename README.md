@@ -26,7 +26,7 @@ Not to be confused with the memory mapped IO described above, this emulates the 
 This emulates the video hardware and produces a representation of the screen based on the state of the video RAM and sprite registers. It runs 60 times a second. The Pac Man screen consists of an array of static tiles overlaid with sprites. The tiles are stored in a character based array in RAM alongside the corresponding palette entries for each tile. The sprite hardware is completely separate from the CPU and is controlled by the sprite registers in the memory mapped IO space. The hardware can draw up to eight 16x16 pixel sprites anywhere on the screen. The tile layout, tile/sprite image format and colour lookup is completely bonkers. See Chris's PDF for a full explanation. Maybe it makes more sense when you look at the actual hardware. See Video.java for the implementation.
 
 ## Sound
-The Pac Man sound hardware supports 3 voices on a single mono channel. Each of these voices can select the volume and frequency of one of 8 output waveforms. The sound registers are written to by the CPU over the memory mapped IO space during the 60Hz VBLANK interrupt. The Pac Man sound hardware runs at a 96kHz sample rate so the output from the sound emulator is downsampled to 44.1kHz for output. It currently doesn't low pass filter the 96kHz stream though so there could be aliasing in the output. See Sound.java for implementation.
+The Pac Man sound hardware supports 3 voices on a single mono channel. Each of these voices can select the volume and frequency of one of 8 output waveforms. The sound registers are written to by the CPU over the memory mapped IO space during the 60Hz VBLANK interrupt. The Pac Man sound hardware runs at a 96kHz sample rate so the output from the sound emulator is low pass filtered and downsampled to 22050Hz for output. See Sound.java for implementation.
 
 ## Inputs
 This emulation currently supports the Player 1 controls (cursor keys), start button (1) and coin input (5). The DIP switches are hardcoded. See Io.java for implementation.
@@ -37,7 +37,7 @@ This emulation currently supports the Player 1 controls (cursor keys), start but
 
 You'll need to get a set of ROMs from somewhere else to make this work. Put the following ROM images in a .zip file in the project root directory and define ROMPACK_FILENAME to be the name of the file and it'll get picked up when the machine starts. You may have to rename the ROM filenames in the .zip to match these depending where you get them from:
 
-# Midway Pacman
+#### Midway Pacman
 
     pacman.6e SHA1 813cecf44bf5464b1aed64b36f5047e4c79ba176
     pacman.6f SHA1 9b5ddaaa8b564654f97af193dbcc29f81f230a25
@@ -50,7 +50,7 @@ You'll need to get a set of ROMs from somewhere else to make this work. Put the 
     82s126.1m SHA1 bbcec0570aeceb582ff8238a4bc8546a23430081
     82s126.3m SHA1 0c4d0bee858b97632411c440bea6948a74759746
 
-# Namco Pacman
+#### Namco Pacman
 
     pacman.6e SHA1 87117ba5082cd7a615b4ec7c02dd819003fbd669
     pacman.6f SHA1 326dbbf94c6fa2e96613dedb53702f8832b47d59
@@ -63,7 +63,7 @@ You'll need to get a set of ROMs from somewhere else to make this work. Put the 
     82s126.1m SHA1 bbcec0570aeceb582ff8238a4bc8546a23430081
     82s126.3m SHA1 0c4d0bee858b97632411c440bea6948a74759746
 
-# Hangly Man
+#### Hangly Man
 
     pacman.6e SHA1 d63eaebd85e10aa6c27bb7f47642dd403eeb6934
     pacman.6f SHA1 cedddc5194589039dd8b64f07ab6320d7d4f55f9
