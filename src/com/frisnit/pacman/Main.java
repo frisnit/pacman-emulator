@@ -27,9 +27,9 @@ import net.sleepymouse.microprocessor.Z80.Z80Core;
 
 public class Main implements KeyListener
 {
-    //private static final String ROMPACK_FILENAME = "pacman-midway.zip";
+    private static final String ROMPACK_FILENAME = "pacman-midway.zip";
     //private static final String ROMPACK_FILENAME = "pacman-namco.zip";
-    private static final String ROMPACK_FILENAME = "hangly.zip";
+    //private static final String ROMPACK_FILENAME = "hangly.zip";
     
     /**
      * Create CPU and run a program
