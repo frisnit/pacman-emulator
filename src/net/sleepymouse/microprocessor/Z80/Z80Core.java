@@ -484,7 +484,7 @@ public class Z80Core implements ICPUData
 	 * @throws ProcessorException
 	 *             Thrown if an unexpected state arises
 	 */
-	public void executeOneInstruction() throws ProcessorException
+      	public void executeOneInstruction() throws ProcessorException
 	{
 		//
 		// NMI check first
@@ -541,8 +541,16 @@ public class Z80Core implements ICPUData
                                 // jump to vector in RAM
                                 reg_PC = ram.readWord(reg_I*256+INT_DATA);
                                 
-                                //System.out.println(String.format("IRQ vector at 0x%04x : 0x%04x", reg_I*256+INT_DATA, reg_PC));
+                               // System.out.println(String.format("IRQ vector at 0x%04x : 0x%04x", reg_I*256+INT_DATA, reg_PC));
                                 
+                                // Patch for namco/hangly man
+                                if(reg_I*256+INT_DATA == 0)
+                                  reg_PC = 0x3000;
+
+                                if(reg_I*256+INT_DATA == 0x0100)
+                                  reg_PC = 0x008d;
+                                // namco/hangly man patch end
+
                                 break;
                         }
                     }
@@ -552,6 +560,7 @@ public class Z80Core implements ICPUData
                 
                 {
                     instruction = ram.readByte(reg_PC);
+
                     incPC();
                     try
                     {

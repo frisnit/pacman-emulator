@@ -24,9 +24,13 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import net.sleepymouse.microprocessor.ProcessorException;
 import net.sleepymouse.microprocessor.Z80.Z80Core;
- 
+
 public class Main implements KeyListener
 {
+    //private static final String ROMPACK_FILENAME = "pacman-midway.zip";
+    //private static final String ROMPACK_FILENAME = "pacman-namco.zip";
+    private static final String ROMPACK_FILENAME = "hangly.zip";
+    
     /**
      * Create CPU and run a program
      */
@@ -55,15 +59,16 @@ public class Main implements KeyListener
         io = new Io(status);
 
         // create address bus
-        memory = new Z80Memory(status, ram, io);
+        memory = new Z80Memory(status, ram, io, ROMPACK_FILENAME);
 
         
         // create video emulator
-        Video video = new Video(ram,io);
+        Video video = new Video(ram,io, ROMPACK_FILENAME);
         
         // create sound emulator
-        Sound sound = new Sound(io, status);
-
+        Sound sound = new Sound(io, status, ROMPACK_FILENAME);
+        
+        
         // create a frame for the display
         JFrame frame = new JFrame("Z80 test");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

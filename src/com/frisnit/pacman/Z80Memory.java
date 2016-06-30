@@ -15,24 +15,6 @@
  */
 package com.frisnit.pacman;
 
-  /*
-    Memory map
-    
-    0x0000 - 0x3fff : Program rom
-    0x4000 - 0x5fff : Graphics rom
-    0x6000 - 0x7fff : Sound rom
-    
-    0x8000 - 0x83ff : Video RAM
-    0x8400 - 0x87ff : Colour RAM
-    0x8800 - 0x8fff : RAM
-    
-    0x9000 : DIP switch 1
-    0x9040 : DIP switch 2
-    0x9080 : Control input 1
-    0x90c0 : Control input 2
-
-    */
-
 import java.util.HashMap;
 import net.sleepymouse.microprocessor.IMemory;
  
@@ -42,18 +24,20 @@ public class Z80Memory implements IMemory
     private Ram ram;
     private Io  io;
     
-    public Z80Memory(Status status, Ram ram, Io io)
+    public Z80Memory(Status status, Ram ram, Io io, String rompack)
     {
         this.io=io;
         this.ram = ram;
 
         // load program rom images
         HashMap<String, Integer> romList = new HashMap<String, Integer>();
+
         romList.put("pacman.6e", 0x0000);
         romList.put("pacman.6f", 0x1000);
         romList.put("pacman.6h", 0x2000);
         romList.put("pacman.6j", 0x3000);
-        rom = new Rom(0x4000,0x1000, romList, "pacman.zip");
+        rom = new Rom(0x4000,0x1000, romList, rompack);
+
     }
 
     private final static int ROM_START    = 0x0000;
@@ -101,7 +85,7 @@ public class Z80Memory implements IMemory
         }
 
         if(address>=RAM_START && address<RAM_START+RAM_LENGTH)
-        {
+        {            
             return TYPE_RAM;
         }
         
@@ -134,10 +118,11 @@ public class Z80Memory implements IMemory
                 // note only lines A0 to A11 connected to RAMs
                 return ram.readByte(offset);
             case TYPE_IO:
-               // System.out.println(String.format("IO read from 0x%x",address));
-                return io.readByte(offset);
+                int value = io.readByte(offset);
+                //System.out.println(String.format("IO read 0x%02x from 0x%x",value,address));
+                return value;
             default:
-               // System.out.println(String.format("Invalid read at 0x%x",address));
+                System.out.println(String.format("Invalid read at 0x%x",address));
                 break;
         }   
         
@@ -164,16 +149,17 @@ public class Z80Memory implements IMemory
         switch(type)
         {
             case TYPE_ROM:
-                System.out.println(String.format("Write attempt to ROM at 0x%x",address));
+                System.out.println(String.format("Write attempt to ROM at 0x%04x",address));
                 break;
             case TYPE_RAM:
                 ram.writeByte(offset,data);
                 break;
             case TYPE_IO:
+                //System.out.println(String.format("Wrote 0x%02x to IO address at 0x%04x",data,address));
                 io.writeByte(offset,data);                
                 break;
             default:
-                System.out.println(String.format("Read to unmapped address at 0x%x",address));
+                System.out.println(String.format("Read to unmapped address at 0x%04x",address));
                 break;
         }
     }
