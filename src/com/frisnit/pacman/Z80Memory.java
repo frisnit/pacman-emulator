@@ -18,6 +18,23 @@ package com.frisnit.pacman;
 import java.util.HashMap;
 import net.sleepymouse.microprocessor.IMemory;
  
+
+/*
+	Memory map
+	
+	0x0000 - 0x3fff : Program rom
+	0x4000 - 0x5fff : Graphics rom
+	0x6000 - 0x7fff : Sound rom
+	
+	0x8000 - 0x83ff : Video RAM
+	0x8400 - 0x87ff : Colour RAM
+	0x8800 - 0x8fff : RAM
+	
+	0x9000 : DIP switch 1
+	0x9040 : DIP switch 2
+	0x9080 : Control input 1
+	0x90c0 : Control input 2
+*/
 public class Z80Memory implements IMemory
 {
     private Rom rom;
