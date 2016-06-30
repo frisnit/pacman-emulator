@@ -49,7 +49,7 @@ The DIP switches are hardcoded. See Io.java for implementation.
 
 ### ROMs
 
-You'll need to get a set of ROMs from somewhere else to make this work. Put the following ROM images in a .zip file in the project root directory and define ROMPACK_FILENAME to be the name of the file and it'll get picked up when the machine starts. You may have to rename the ROM filenames in the .zip to match these depending where you get them from:
+You'll need to get a set of ROMs from somewhere else to make this work. Put the following ROM images in a .zip file in the project root directory and define ROMPACK_FILENAME in Main.java to be the name of the file and it'll get picked up when the machine starts. You may have to rename the ROM filenames in the .zip to match these depending where you get them from:
 
 #### Midway Pacman
 
